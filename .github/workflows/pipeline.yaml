@@ -34,8 +34,7 @@ jobs:
     needs: code-scan
     runs-on: ubuntu-latest
     permissions:
-        security-events: write
-        contents: read
+        contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
