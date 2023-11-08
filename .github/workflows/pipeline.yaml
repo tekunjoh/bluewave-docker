@@ -22,13 +22,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: 'python'  
+    #   - name: Initialize CodeQL
+    #     uses: github/codeql-action/init@v2
+    #     with:
+    #       languages: 'python'  
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+    #   - name: Perform CodeQL Analysis
+    #     uses: github/codeql-action/analyze@v2
 
   build:
     needs: code-scan
@@ -39,9 +39,10 @@ jobs:
 
       - name: Bump version and push tag
         id: bump_version
-        uses: anothrNick/github-tag-action@1.26.0
+        uses: anothrNick/github-tag-action@1.66.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
           DEFAULT_BUMP: patch
 
       - name: Build Docker image
