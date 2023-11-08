@@ -51,7 +51,9 @@ jobs:
         run: |
           IMAGE_TAG=${{ steps.bump_version.outputs.new_tag }}
           IMAGE_NAME="${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+          echo "IMAGE_NAME=${IMAGE_NAME}" >> $GITHUB_ENV
           docker build -t "${IMAGE_NAME}" .
+
 
       - name: Test Docker image
         run: |
@@ -60,7 +62,7 @@ jobs:
       - name: Scan the Docker image with Anchore
         uses: anchore/scan-action@v3
         with:
-          image: "${IMAGE_NAME}"
+          image: "${{ env.IMAGE_NAME }}"
           severity-cutoff: critical
           output-format: sarif
           only-fixed: false
