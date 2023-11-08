@@ -1,0 +1,62 @@
+# Update the system
+sudo yum update -y
+
+# Install Docker
+sudo amazon-linux-extras install docker -y
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -a -G docker ec2-user
+id ec2-user
+newgrp docker
+sudo systemctl enable docker.service
+sudo systemctl start docker.service
+
+# Install jq for JSON processing
+sudo yum install -y jq
+
+REPOSITORY_NAME=${repository_name}
+REGION=${region}
+APPNAME=bluewave_app_color
+
+# Login to AWS ECR (ensure AWS CLI and credentials are configured properly)
+$(aws ecr get-login --no-include-email --region $REGION)
+
+# Retrieve the latest image tag based on semantic versioning from AWS ECR
+
+
+LATEST_TAG=$(aws ecr describe-images \
+    --region "$REGION" \
+    --repository-name "$REPOSITORY_NAME" \
+    --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[?starts_with(@, `v`)] | [0]' \
+    --output text)
+
+echo "Latest image tag: $LATEST_TAG"
+
+# If LATEST_TAG is "None", no tag was found; handle this case as needed.
+
+# Pull the latest Docker image using the tag
+if [ "$LATEST_TAG" != "None" ]; then
+    sudo docker pull "$REPOSITORY_NAME:$LATEST_TAG"
+else
+    echo "No valid image tag found."
+    # Handle the error, perhaps exit or use a default tag
+fi
+
+# Run the Docker container using the retrieved tag
+if [ "$LATEST_TAG" != "None" ]; then
+    sudo docker run \
+        -d \
+        --name $APPNAME \
+        --restart always \
+        "$REPOSITORY_NAME:$LATEST_TAG"
+else
+    echo "No valid image tag found, container not started."
+    # Handle the error, perhaps exit or use a default tag
+fi
+
+# Install SSM agent and CloudWatch agent
+sudo yum update -y
+sudo yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+sudo systemctl enable amazon-ssm-agent
+sudo systemctl start amazon-ssm-agent
+sudo systemctl enable amazon-cloudwatch-agent

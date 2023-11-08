@@ -1,0 +1,98 @@
+name: CI/CD Pipeline with Code and Container Scanning
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to main branch
+
+env:
+  AWS_REGION: 'us-east-1'
+  ECR_REPOSITORY: 'your-ecr-repo-name'
+  EC2_HOST: 'your-ec2-instance-ip'
+  SSH_USERNAME: 'ec2-user'
+
+jobs:
+  code-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: 'python'  # Specify the languages you want to analyze
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+
+  build:
+    needs: code-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Bump version and push tag
+        id: bump_version
+        uses: anothrNick/github-tag-action@1.26.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+
+      - name: Build Docker image
+        run: |
+          IMAGE_TAG=${{ steps.bump_version.outputs.new_tag }}
+          IMAGE_NAME="${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+          docker build -t "${IMAGE_NAME}" .
+
+      - name: Scan the Docker image with Anchore
+        uses: anchore/scan-action@v3
+        with:
+          image: "${IMAGE_NAME}"
+          fail-build: true
+          acs_report_enable: true
+          severity-cutoff: 'critical'
+
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Push Docker image to Amazon ECR
+        run: |
+          IMAGE_TAG=${{ needs.build.outputs.IMAGE_TAG }}
+          ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+          IMAGE_NAME="${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+          FULL_IMAGE_NAME="${ECR_REGISTRY}/${IMAGE_NAME}"
+          docker tag "${IMAGE_NAME}" "${FULL_IMAGE_NAME}"
+          docker push "${FULL_IMAGE_NAME}"
+
+  deploy:
+    needs: push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Docker image to EC2 instance
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ env.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            IMAGE_TAG=${{ needs.push.outputs.IMAGE_TAG }}
+            ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+            FULL_IMAGE_NAME="${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+            docker pull "${FULL_IMAGE_NAME}"
+            docker stop myapp || true
+            docker rm myapp || true
+            docker run -d --name myapp -p 80:80 "${FULL_IMAGE_NAME}"
