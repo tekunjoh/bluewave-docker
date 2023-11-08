@@ -53,6 +53,10 @@ jobs:
           IMAGE_NAME="${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
           docker build -t "${IMAGE_NAME}" .
 
+      - name: Test Docker image
+        run: |
+            docker image ls
+
       - name: Scan the Docker image with Anchore
         uses: anchore/scan-action@v3
         with:
