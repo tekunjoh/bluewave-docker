@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: 'us-east-1'
-  ECR_REPOSITORY: 'your-ecr-repo-name'
+  ECR_REPOSITORY: 'bluewave-app'
   EC2_HOST: 'your-ec2-instance-ip'
   SSH_USERNAME: 'ec2-user'
 
@@ -57,9 +57,10 @@ jobs:
         uses: anchore/scan-action@v3
         with:
           image: "${IMAGE_NAME}"
-          fail-build: true
-          acs_report_enable: true
-          severity-cutoff: 'critical'
+          severity-cutoff: critical
+          output-format: sarif
+          only-fixed: false
+          add-cpes-if-none: false
 
   push:
     needs: build
@@ -68,8 +69,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::209452254299:role/token.actions.githubusercontent.com
+          role-session-name: github-actions_bluewave
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
