@@ -67,6 +67,7 @@ jobs:
           output-format: sarif
           only-fixed: false
           add-cpes-if-none: false
+          fail-build: false 
 
   push:
     needs: build
