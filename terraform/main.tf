@@ -39,6 +39,9 @@ resource "aws_route_table_association" "main" {
 }
 
 
+data "http" "my_ip" {
+  url = "http://ipv4.icanhazip.com"
+}
 
 resource "aws_security_group" "allow_ssh" {
   vpc_id = aws_vpc.main.id
@@ -57,10 +60,10 @@ resource "aws_security_group" "allow_ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    from_port   = 8834
-    to_port     = 8834
+    from_port   = 8081
+    to_port     = 8081
     protocol    = "tcp"
-    cidr_blocks = ["107.194.106.111/32"]
+    cidr_blocks = ["${trimspace(data.http.my_ip.body)}/32"]
   }
 
   tags = {
@@ -167,8 +170,12 @@ resource "aws_iam_policy" "ecr_read_policy" {
     Version = "2012-10-17",
     Statement = [
       {
+            "Effect": "Allow",
+            "Action": "ecr:GetAuthorizationToken",
+            "Resource": "*"
+        },
+      {
         Action = [
-          "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
           "ecr:GetRepositoryPolicy",

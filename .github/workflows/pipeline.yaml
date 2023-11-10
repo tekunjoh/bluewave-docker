@@ -3,13 +3,14 @@ name: CI/CD Pipeline with Code and Container Scanning
 on:
   push:
     branches:
-      - main  # Trigger on push to main branch
+      - main  
 
 env:
   AWS_REGION: 'us-east-1'
   AWS_ACCOUNT_ID: '909632097186'
   ECR_REPOSITORY: 'bluewave-app'
-  EC2_HOST: 'your-ec2-instance-ip'
+  APP_NAME: 'bluewave-app'
+  EC2_HOST: '107.194.106.111'
   SSH_USERNAME: 'ec2-user'
 
 jobs:
@@ -94,48 +95,69 @@ jobs:
           docker tag "${IMAGE_NAME}" "${FULL_IMAGE_NAME}"
           docker push "${FULL_IMAGE_NAME}"
 
-  # push:
+
+  # deploy:
   #   needs: build
   #   runs-on: ubuntu-latest
-  #   permissions:
-  #     id-token: write   
-  #     contents: read
-    # steps:
-    #   - name: Configure AWS credentials
-    #     uses: aws-actions/configure-aws-credentials@v4
-    #     with:
-    #       role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID}}:role/bluewave-GitHubActionsRole-dev
-    #       role-session-name: github-actions_bluewave
-    #       aws-region: ${{ env.AWS_REGION }}
-
-    #   - name: Login to Amazon ECR
-    #     id: login-ecr
-    #     uses: aws-actions/amazon-ecr-login@v1
-
-    #   - name: Push Docker image to Amazon ECR
-    #     run: |
-    #       IMAGE_TAG=${{ needs.build.outputs.IMAGE_TAG }}
-    #       ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
-    #       IMAGE_NAME="${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
-    #       FULL_IMAGE_NAME="${ECR_REGISTRY}/${IMAGE_NAME}"
-    #       docker tag "${IMAGE_NAME}" "${FULL_IMAGE_NAME}"
-    #       docker push "${FULL_IMAGE_NAME}"
+  #   steps:
+  #     - name: Deploy Docker image to EC2 instance
+  #       uses: appleboy/ssh-action@master
+  #       with:
+  #         host: ${{ env.EC2_HOST }}
+  #         username: ${{ env.SSH_USERNAME }}
+  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         script: |
+  #           IMAGE_TAG=${{ needs.push.outputs.IMAGE_TAG }}
+  #           ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+  #           FULL_IMAGE_NAME="${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+  #           docker pull "${FULL_IMAGE_NAME}"
+  #           docker stop ${{ env.APP_NAME }} || true
+  #           docker rm ${{ env.APP_NAME }} || true
+  #           docker run -d --name ${{ env.APP_NAME }} -p 8081:8080 "${FULL_IMAGE_NAME}"
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+  
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        
+        with:
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID}}:role/bluewave-GitHubActionsRole-dev
+          role-session-name: github-actions_bluewave
+          aws-region: ${{ env.AWS_REGION }}
+  
+      - name: Retrieve SSH private key from AWS Secrets Manager
+        id: get-ssh-key
+        run: |
+          SSH_PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id bluewave-private-key-dev --query SecretString --output text)
+          SSH_KEY_FILE=ssh_key.pem
+          echo "$SSH_PRIVATE_KEY" > $SSH_KEY_FILE
+          chmod 600 $SSH_KEY_FILE
+          echo "::set-output name=SSH_KEY_FILE::$SSH_KEY_FILE"
+        
+  
       - name: Deploy Docker image to EC2 instance
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ steps.get-ssh-key.outputs.SSH_KEY_FILE }}
           script: |
-            IMAGE_TAG=${{ needs.push.outputs.IMAGE_TAG }}
+            IMAGE_TAG=${{ needs.build.outputs.IMAGE_TAG }}
             ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
             FULL_IMAGE_NAME="${ECR_REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
             docker pull "${FULL_IMAGE_NAME}"
-            docker stop myapp || true
-            docker rm myapp || true
-            docker run -d --name myapp -p 80:80 "${FULL_IMAGE_NAME}"
+            docker stop ${{ env.APP_NAME }} || true
+            docker rm ${{ env.APP_NAME }} || true
+            docker run -d --name ${{ env.APP_NAME }} -p 8081:8080 "${FULL_IMAGE_NAME}"
+        env:
+          SSH_KEY: ${{ steps.get-ssh-key.outputs.SSH_KEY_FILE }}
+  
+      - name: Remove SSH private key
+        if: always()
+        run: rm -f ${{ steps.get-ssh-key.outputs.SSH_KEY_FILE }}
+  
