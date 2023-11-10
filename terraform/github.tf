@@ -30,7 +30,7 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:github.com/${var.github_username}/*:*"]
+      values   = ["repo:${var.github_username}/*:*"]
     }
   }
 }
@@ -58,7 +58,16 @@ resource "aws_iam_policy" "github_actions_ecr_policy" {
                 "ecr:UploadLayerPart",
                 "ecr:CompleteLayerUpload",
                 "ecr:PutImage",
-                "ecr:*"
+                "ecr-public:GetAuthorizationToken",
+                "sts:GetServiceBearerToken",
+                "ecr-public:BatchCheckLayerAvailability",
+                "ecr-public:GetRepositoryPolicy",
+                "ecr-public:DescribeRepositories",
+                "ecr-public:DescribeRegistries",
+                "ecr-public:DescribeImages",
+                "ecr-public:DescribeImageTags",
+                "ecr-public:GetRepositoryCatalogData",
+                "ecr-public:GetRegistryCatalogData"
             ],
             "Resource": "*"
         }
