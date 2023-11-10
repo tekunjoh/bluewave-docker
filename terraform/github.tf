@@ -35,8 +35,38 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
 }
 
 
+resource "aws_iam_policy" "github_actions_ecr_policy" {
+  name = "${var.product}-github-actions-ecr-access"
 
-# resource "aws_iam_role_policy_attachment" "policy1" {
-#   role       = aws_iam_role.github_actions.name
-#   policy_arn = "arn:aws:iam::aws:policy/SomePolicy"
-# }
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:GetAuthorizationToken",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:GetRepositoryPolicy",
+                "ecr:DescribeRepositories",
+                "ecr:ListImages",
+                "ecr:DescribeImages",
+                "ecr:BatchGetImage",
+                "ecr:InitiateLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:CompleteLayerUpload",
+                "ecr:PutImage",
+                "ecr:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+
+}
+resource "aws_iam_role_policy_attachment" "github_actions_ecr_policy_attachment" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.github_actions_ecr_policy.arn
+}

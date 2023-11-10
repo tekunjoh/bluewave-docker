@@ -107,7 +107,6 @@ resource "aws_secretsmanager_secret_version" "private_key" {
 }
 
 
-
 resource "aws_instance" "app_and_web_server" {
   ami           = data.aws_ami.app_and_web_server.id
   instance_type = var.instance_type
