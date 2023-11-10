@@ -10,7 +10,7 @@ env:
   AWS_ACCOUNT_ID: '909632097186'
   ECR_REPOSITORY: 'bluewave-app'
   APP_NAME: 'bluewave-app'
-  EC2_HOST: '54.161.227.145'
+  # EC2_HOST: '54.161.227.145'
   SSH_USERNAME: 'ec2-user'
 
 jobs:
@@ -133,14 +133,21 @@ jobs:
           ls -al 
           pwd
   
-
+      - name: Get EC2 Instance IP Address
+        id: get-ip
+        run: |
+          INSTANCE_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=bluewave-app-and-web-server-dev" \
+            --query "Reservations[*].Instances[*].PublicIpAddress" \
+            --output text)
+          echo "EC2_HOST=$INSTANCE_IP" >> $GITHUB_ENV
   
       - name: Deploy Docker image to EC2 instance
         run: |
           cat $SSH_KEY_FILE
           ls -al 
           pwd
-          ssh -o StrictHostKeyChecking=no -i ssh_key.pem ${{ env.SSH_USERNAME }}@${{ env.EC2_HOST }} "
+          ssh -o StrictHostKeyChecking=no -i ssh_key.pem ${{ env.SSH_USERNAME }}@$EC2_HOST"
             
             ECR_REGISTRY='${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com'
             IMAGE_TAG='${{ needs.build.outputs.IMAGE_TAG }}'
