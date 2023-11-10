@@ -23,11 +23,14 @@ COLOR_FROM_ENV = os.environ.get('APP_COLOR')
 # Generate a random color
 COLOR = random.choice(["red", "green", "blue", "blue2", "darkblue", "pink"])
 
+IMAGE_TAG = os.environ.get('IMAGE_TAG', 'Unknown')
+
 
 @app.route("/")
 def main():
     # return 'Hello'
-    return render_template('hello.html', name=socket.gethostname(), color=color_codes[COLOR])
+    # return render_template('hello.html', name=socket.gethostname(), color=color_codes[COLOR])
+    return render_template('hello.html', name=socket.gethostname(), color=color_codes[COLOR], image_tag=IMAGE_TAG)
 
 
 if __name__ == "__main__":
