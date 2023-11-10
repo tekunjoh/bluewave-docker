@@ -37,6 +37,8 @@ jobs:
     permissions:
         id-token: write 
         contents: write
+    outputs:
+      IMAGE_TAG: ${{ steps.bump_version.outputs.new_tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
