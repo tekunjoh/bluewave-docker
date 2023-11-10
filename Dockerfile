@@ -4,10 +4,15 @@ RUN pip install flask
 
 COPY . /opt/
 
+
+
 EXPOSE 8080
 
 WORKDIR /opt
 
-ENV IMAGE_TAG=v0.0.43
+ARG IMAGE_TAG
+
+ENV IMAGE_TAG=$IMAGE_TAG
+
 
 ENTRYPOINT ["python", "app.py"]
