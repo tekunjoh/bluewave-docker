@@ -141,13 +141,16 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ssh_key.pem ${{ env.SSH_USERNAME }}@${{ env.EC2_HOST }} "
 
             aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}
-            export IMAGE_FULL_TAG="${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.build.outputs.IMAGE_TAG }}" 
+            IMAGE_FULL_TAG="${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.build.outputs.IMAGE_TAG }}" 
 
    
             if [ \$(docker ps -aq -f name=^${{ env.APP_NAME }}\$) ]; then
               docker stop ${{ env.APP_NAME }}
               docker rm ${{ env.APP_NAME }}
             fi
+
+            pwd
+            ls -al
 
             docker run -d --name ${{ env.APP_NAME }} -p 8081:8080 $IMAGE_FULL_TAG
           "
