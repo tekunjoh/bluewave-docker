@@ -11,12 +11,22 @@
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             height: 100vh;
         }
+        .app-name {
+            color: #e4e4e4;
+            font-size: 2em;
+            margin-top: 0;
+            padding-top: 20px;
+        }
         .container {
             text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .welcome-message {
             color: #e4e4e4;
@@ -51,12 +61,14 @@
     </style>
 </head>
 <body>
+    <div class="app-name">Bluewave Docker App</div>
+
     <div class="container">
         <div class="welcome-message">
             {% if name %}
                 <h1>Welcome to {{ name }}!</h1>
             {% else %}
-                <h1>Welcome to Bluewave Docker App!</h1>
+                <h1>Welcome!</h1>
             {% endif %}
         </div>
         <div class="auth-prompt">
