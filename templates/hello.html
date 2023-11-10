@@ -6,35 +6,35 @@
     <title>Bluewave Docker App</title>
     <style>
         body {
-            background: {{ color }};
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
+            height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .left-side {
+            width: 50%;
+            background-image: url('https://images.pexels.com/photos/6044145/pexels-photo-6044145.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
+            background-size: cover;
+            background-position: center;
+        }
+        .right-side {
+            width: 50%;
+            background: {{ color }};
+            display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
+            justify-content: center;
+            text-align: center;
         }
         .app-name {
             color: #e4e4e4;
             font-size: 2.5em;
-            margin-top: 0;
-            padding-top: 30px;
             text-shadow: 2px 2px 4px #000;
             background: -webkit-linear-gradient(#007bff, #9b59b6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: bold;
-        }
-        .container {
-            text-align: center;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .welcome-message {
-            color: #e4e4e4;
             margin-bottom: 20px;
         }
         .auth-prompt {
@@ -58,7 +58,7 @@
             right: 10px;
             bottom: 10px;
             padding: 5px;
-            background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+            background-color: rgba(255, 255, 255, 0.7);
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 14px;
@@ -66,16 +66,11 @@
     </style>
 </head>
 <body>
-    <div class="app-name">Bluewave Docker App</div>
-
-    <div class="container">
-        <div class="welcome-message">
-            {% if name %}
-                <h1>Welcome to {{ name }}!</h1>
-            {% else %}
-                <h1>Welcome!</h1>
-            {% endif %}
-        </div>
+    <div class="left-side">
+        <!-- Static image here -->
+    </div>
+    <div class="right-side">
+        <div class="app-name">Bluewave Docker App</div>
         <div class="auth-prompt">
             <h2>Sign In or Sign Up</h2>
             <p>Explore our features and services.</p>
@@ -87,10 +82,9 @@
                 {{ contents }}
             </textarea>
         {% endif %}
-    </div>
-
-    <div id="image-tag">
-        app version: {{ image_tag }}
+        <div id="image-tag">
+            app version: {{ image_tag }}
+        </div>
     </div>
 </body>
 </html>
