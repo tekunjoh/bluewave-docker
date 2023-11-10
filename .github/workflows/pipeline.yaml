@@ -73,11 +73,14 @@ jobs:
   push:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   
+      contents: read
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::909632097186:role/bluewave-GitHubActionsRole-dev
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID}}:role/bluewave-GitHubActionsRole-dev
           role-session-name: github-actions_bluewave
           aws-region: ${{ env.AWS_REGION }}
 
