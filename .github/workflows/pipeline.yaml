@@ -35,6 +35,7 @@ jobs:
     needs: code-scan
     runs-on: ubuntu-latest
     permissions:
+        id-token: write 
         contents: write
     outputs:
       IMAGE_TAG: ${{ steps.bump_version.outputs.new_tag }}
@@ -72,24 +73,18 @@ jobs:
           add-cpes-if-none: false
           fail-build: false 
 
-  push:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write   
-      contents: read
-    steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
+        
         with:
           role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID}}:role/bluewave-GitHubActionsRole-dev
           role-session-name: github-actions_bluewave
           aws-region: ${{ env.AWS_REGION }}
-
+  
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-
+  
       - name: Push Docker image to Amazon ECR
         run: |
           IMAGE_TAG=${{ needs.build.outputs.IMAGE_TAG }}
@@ -99,8 +94,35 @@ jobs:
           docker tag "${IMAGE_NAME}" "${FULL_IMAGE_NAME}"
           docker push "${FULL_IMAGE_NAME}"
 
+  # push:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write   
+  #     contents: read
+    # steps:
+    #   - name: Configure AWS credentials
+    #     uses: aws-actions/configure-aws-credentials@v4
+    #     with:
+    #       role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID}}:role/bluewave-GitHubActionsRole-dev
+    #       role-session-name: github-actions_bluewave
+    #       aws-region: ${{ env.AWS_REGION }}
+
+    #   - name: Login to Amazon ECR
+    #     id: login-ecr
+    #     uses: aws-actions/amazon-ecr-login@v1
+
+    #   - name: Push Docker image to Amazon ECR
+    #     run: |
+    #       IMAGE_TAG=${{ needs.build.outputs.IMAGE_TAG }}
+    #       ECR_REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+    #       IMAGE_NAME="${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+    #       FULL_IMAGE_NAME="${ECR_REGISTRY}/${IMAGE_NAME}"
+    #       docker tag "${IMAGE_NAME}" "${FULL_IMAGE_NAME}"
+    #       docker push "${FULL_IMAGE_NAME}"
+
   deploy:
-    needs: push
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Deploy Docker image to EC2 instance
