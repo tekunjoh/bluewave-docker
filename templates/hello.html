@@ -17,6 +17,23 @@
   </textarea>
   {% endif %}
 
-  <h2>Image Tag: {{ image_tag }}</h2>
+  {% comment %} <h2>APP VERSION: {{ image_tag }}</h2> {% endcomment %}
 
 </div>
+
+<div id="image-tag">
+  Image Tag: {{ image_tag }}
+</div>
+
+<style>
+  #image-tag {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    padding: 5px;
+    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+  }
+</style>
