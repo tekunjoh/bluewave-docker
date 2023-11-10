@@ -13,3 +13,6 @@ provider "aws" {
 provider "http" {}
 
 
+provider "local" {
+  
+}

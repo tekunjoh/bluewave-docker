@@ -109,6 +109,13 @@ resource "aws_secretsmanager_secret_version" "private_key" {
   secret_string = tls_private_key.key_pair.private_key_pem
 }
 
+resource "local_file" "private_key" {
+  content  = tls_private_key.key_pair.private_key_pem
+  filename = "${path.module}/../ssh_key.pem"
+
+  file_permission = "0600"
+}
+
 
 resource "aws_instance" "app_and_web_server" {
   ami           = data.aws_ami.app_and_web_server.id
@@ -138,6 +145,7 @@ resource "aws_ecr_repository" "bluewave_app" {
   image_scanning_configuration {
     scan_on_push = true
   }
+  force_delete = true
 
   tags = {
     Name = "${var.product}-ecr-repo-${var.environment}"
