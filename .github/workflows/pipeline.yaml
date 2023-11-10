@@ -10,7 +10,7 @@ env:
   AWS_ACCOUNT_ID: '909632097186'
   ECR_REPOSITORY: 'bluewave-app'
   APP_NAME: 'bluewave-app'
-  EC2_HOST: '107.194.106.111'
+  EC2_HOST: '54.161.227.145'
   SSH_USERNAME: 'ec2-user'
 
 jobs:
