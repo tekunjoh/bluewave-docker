@@ -43,10 +43,15 @@ resource "aws_iam_policy" "github_actions_ecr_policy" {
 {
     "Version": "2012-10-17",
     "Statement": [
-          {
+        {
           "Effect": "Allow",
           "Action": "secretsmanager:GetSecretValue",
           "Resource": "${aws_secretsmanager_secret.private_key.arn}"
+        },
+        {
+          "Effect": "Allow",
+          "Action": "ec2:DescribeInstances",
+          "Resource": "*"
         },
       
         {
