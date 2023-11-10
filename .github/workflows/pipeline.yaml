@@ -76,7 +76,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::209452254299:role/token.actions.githubusercontent.com
+          role-to-assume: arn:aws:iam::209452254299:role/bluewave-GitHubActionsRole-dev
           role-session-name: github-actions_bluewave
           aws-region: ${{ env.AWS_REGION }}
 
