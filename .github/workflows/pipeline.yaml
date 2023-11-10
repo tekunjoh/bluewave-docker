@@ -122,6 +122,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > $SSH_KEY_FILE
           chmod 600 $SSH_KEY_FILE
           echo "SSH_KEY_FILE=$SSH_KEY_FILE" >> $GITHUB_ENV
+          echo "SSH_PRIVATE_KEY=$(cat ssh_key.pem)" >> $GITHUB_ENV
           cat ssh_key.pem
   
       - name: Deploy Docker image to EC2 instance
@@ -129,7 +130,7 @@ jobs:
         with:
           host: ${{ env.EC2_HOST }}
           username: ${{ env.SSH_USERNAME }}
-          key: ${{ steps.get-ssh-key.outputs.SSH_KEY_FILE }}
+          key: ${{ env.SSH_PRIVATE_KEY }}
           script: |
             ECR_REGISTRY='${{ steps.login-ecr.outputs.registry }}'
             AWS_ACCESS_KEY_ID='${{ secrets.AWS_ACCESS_KEY_ID }}'
