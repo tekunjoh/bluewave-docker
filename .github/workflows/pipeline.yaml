@@ -10,7 +10,6 @@ env:
   AWS_ACCOUNT_ID: '909632097186'
   ECR_REPOSITORY: 'bluewave-app'
   APP_NAME: 'bluewave-app'
-  # EC2_HOST: '54.161.227.145'
   SSH_USERNAME: 'ec2-user'
 
 jobs:
@@ -24,13 +23,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # - name: Initialize CodeQL
-      #   uses: github/codeql-action/init@v2
-      #   with:
-      #     languages: 'python'  
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: 'python'  
 
-      # - name: Perform CodeQL Analysis
-      #   uses: github/codeql-action/analyze@v2
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
 
   build:
     needs: code-scan
