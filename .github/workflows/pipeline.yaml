@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: 'us-east-1'
-  AWS_ACCOUNT_ID: '909632097186'
+  AWS_ACCOUNT_ID: 'xxxxxxxxxx'
   ECR_REPOSITORY: 'bluewave-app'
   APP_NAME: 'bluewave-app'
   SSH_USERNAME: 'ec2-user'
