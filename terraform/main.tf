@@ -281,6 +281,7 @@ resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core_attachment"
 resource "aws_iam_role_policy_attachment" "ssm_patch_attachment" {
   role       = aws_iam_role.ec2_ecr_role.name
   policy_arn = data.aws_iam_policy.policy_ssm_patch.arn
+  
 }
 
 resource "aws_iam_role_policy_attachment" "iam_policy_2_attachment" {
